@@ -13,7 +13,6 @@ Requirements:
 - Java runtime (for H2O)
 """
 
-import os
 import math
 import random
 import csv

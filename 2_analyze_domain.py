@@ -251,7 +251,7 @@ def analyze_domain(domain: str, model_path: str) -> int:
             print(playbook)
 
     else:
-        print(f"\n[result] Predicted class: LEGIT")
+        print("\n[result] Predicted class: LEGIT")
         print("[info] Playbook generation is only triggered for DGA predictions.")
 
     # Shutdown
