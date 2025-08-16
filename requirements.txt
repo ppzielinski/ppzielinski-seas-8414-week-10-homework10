@@ -1,5 +1,4 @@
-h2o==3.46.0.3python-dotenv
-
+h2o==3.46.0.3
 shap
 pandas
 numpy
