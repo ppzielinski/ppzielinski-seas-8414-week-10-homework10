@@ -22,5 +22,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff==0.5.7
 
-      - name: Run Ruff (non-blocking)
-        run: ruff check . || true
+      - name: Run Ruff
+        run: ruff check .
