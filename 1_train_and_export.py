@@ -1,10 +1,11 @@
+#!/usr/bin/env python3
 """
-1_train_and_export.py
+1_train_and_export.py (updated)
 
-End-to-end script that:
-1) Generates a toy DGA training dataset (dga_dataset_train.csv)
-2) Trains an H2O AutoML model on it
-3) Exports the leader model as a MOJO into ./model
+Runs the end-to-end Part 1 pipeline:
+1) Generate dga_dataset_train.csv (always regenerates for reproducibility)
+2) Train H2O AutoML on (length, entropy) features
+3) Export the leader model as a MOJO saved EXACTLY as ./model/DGA_Leader.zip
 
 Requirements:
 - Python 3.x
@@ -23,7 +24,7 @@ from h2o.automl import H2OAutoML
 
 
 # -----------------------------
-# Data generation (from lab code)
+# Data generation (lab logic)
 # -----------------------------
 def get_entropy(s: str) -> float:
     p, lns = {}, float(len(s))
@@ -33,11 +34,7 @@ def get_entropy(s: str) -> float:
 
 
 def generate_dataset(csv_path: str) -> None:
-    """Generate dga_dataset_train.csv if it doesn't already exist."""
-    if os.path.exists(csv_path):
-        print(f"[data] {csv_path} already exists. Skipping generation.")
-        return
-
+    """Always (re)generate the training dataset."""
     header = ['domain', 'length', 'entropy', 'class']
     data = []
 
@@ -65,16 +62,14 @@ def generate_dataset(csv_path: str) -> None:
 # AutoML training + MOJO export
 # -----------------------------
 def train_and_export(csv_path: str, model_dir: str = "./model") -> str:
-    """Train H2O AutoML on the dataset and export leader MOJO to model_dir.
-    Returns the path to the saved MOJO.
-    """
+    """Train H2O AutoML and export the leader MOJO as ./model/DGA_Leader.zip."""
     print("[h2o] Initializing H2O...")
     h2o.init()
 
     print(f"[h2o] Importing training data from {csv_path}...")
     train = h2o.import_file(csv_path)
 
-    x = ['length', 'entropy']  # Features, per lab
+    x = ['length', 'entropy']  # Features from lab
     y = 'class'                # Target
     train[y] = train[y].asfactor()
 
@@ -88,21 +83,36 @@ def train_and_export(csv_path: str, model_dir: str = "./model") -> str:
     best_model = aml.leader
     Path(model_dir).mkdir(parents=True, exist_ok=True)
 
+    # Export MOJO to a temp filename, then copy to DGA_Leader.zip
     print(f"[mojo] Downloading leader MOJO to {model_dir}...")
-    mojo_path = best_model.download_mojo(path=model_dir)
-    print(f"[mojo] Production-ready model saved to: {mojo_path}")
+    mojo_temp = best_model.download_mojo(path=model_dir)
 
-    print("[h2o] Shutting down H2O...")
-    h2o.shutdown(prompt=False)
+    # Normalize to required filename
+    target_path = str(Path(model_dir) / "DGA_Leader.zip")
+    try:
+        # Overwrite if exists
+        import shutil
+        shutil.copyfile(mojo_temp, target_path)
+        print(f"[mojo] Production-ready model saved to: {target_path}")
+    except Exception as e:
+        print(f"[mojo] Could not copy MOJO to {target_path}: {e}")
+        target_path = mojo_temp
+        print(f"[mojo] Using original MOJO path instead: {target_path}")
 
-    return mojo_path
+    # Graceful shutdown
+    try:
+        h2o.cluster().shutdown()
+    except Exception:
+        pass
+
+    return target_path
 
 
 def main():
     csv_path = "dga_dataset_train.csv"
-    model_dir = "./model"  # per homework requirement
+    model_dir = "./model"
 
-    generate_dataset(csv_path)
+    generate_dataset(csv_path)               # always regenerate
     mojo_path = train_and_export(csv_path, model_dir=model_dir)
 
     print("\nDone.")
