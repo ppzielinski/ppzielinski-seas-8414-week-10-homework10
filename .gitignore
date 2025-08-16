@@ -1,2 +1,29 @@
 model/
 dga_dataset_train.csv
+
+# --- homework: track the MOJO zip ---
+!model/
+!model/DGA_Leader.zip
+# general ignores
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# --- homework: track the MOJO zip ---
+!model/
+!model/DGA_Leader.zip
+# general ignores
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# --- homework: track the MOJO zip ---
+!model/
+!model/DGA_Leader.zip
+# general ignores
+.env
+__pycache__/
+*.pyc
+.DS_Store

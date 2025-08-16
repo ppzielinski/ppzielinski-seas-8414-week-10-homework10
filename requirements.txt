@@ -1,1 +1,7 @@
-h2o==3.46.0.3
+h2o==3.46.0.3python-dotenv
+
+shap
+pandas
+numpy
+python-dotenv
+google-generativeai
